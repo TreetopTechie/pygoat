@@ -544,3 +544,75 @@ but if we start the server by ```python manage.py runserver 0:8000``` the page w
 
 Now comes the utility that takes the URL and fetch the data, if we give the localhost url to this utility it can fetch the data easily and we can see the page from outside localhost. 
 
+
+## IDOR: Insecure Direct Object Reference
+
+IDOR (Insecure Direct Object Reference) is an access control vulnerability where an application exposes internal object references (like database IDs) to users without proper authorization checks. This allows attackers to access unauthorized resources by simply modifying the reference value.
+
+### IDOR Lab
+
+This lab simulates an employee directory system where users can view their profile by ID. The vulnerability is that the application doesn't verify if the logged-in user has permission to view the requested profile.
+
+#### Lab Credentials
+- Username: `john`
+- Password: `password2`
+
+#### Exploiting the Vulnerability
+
+1. Access the lab at `/idor_lab` and login with the credentials above.
+
+2. After logging in, you'll see John's profile with the URL:
+   ```
+   /idor_lab?user_id=2
+   ```
+
+3. Notice the `user_id` parameter in the URL. The application uses this directly to fetch user profiles without checking authorization.
+
+4. Try changing the `user_id` parameter to different values:
+   - `user_id=1` - CEO's profile (admin)
+   - `user_id=3` - Sarah's profile (manager)
+   - `user_id=4` - Mike's profile (employee)
+   - `user_id=5` - Lisa's profile (manager)
+
+5. By changing `user_id=2` to `user_id=1`, you can access the CEO's profile and see sensitive information:
+   - SSN: `000-00-0001`
+   - Salary: `$500,000`
+
+#### Why This Works
+
+The vulnerable code looks like this:
+```python
+def idor_lab(request):
+    user_id = request.GET.get('user_id')
+    # VULNERABLE: No authorization check!
+    profile = IDOR_User.objects.get(id=user_id)
+    return render(request, "Lab/IDOR/idor_lab.html", {"profile": profile})
+```
+
+The application simply fetches any user by ID without verifying that the currently authenticated user should have access to that data.
+
+#### Secure Implementation
+
+A secure implementation would verify ownership:
+```python
+def idor_lab_secure(request):
+    user_id = request.GET.get('user_id')
+    profile = IDOR_User.objects.get(id=user_id)
+    
+    # Check if user has permission to view this profile
+    if profile.username != request.session.get('idor_username'):
+        return HttpResponse("Access Denied", status=403)
+    
+    return render(request, "Lab/IDOR/idor_lab.html", {"profile": profile})
+```
+
+#### Prevention Methods
+
+1. **Implement proper access control** - Always verify that the authenticated user has permission to access the requested resource.
+
+2. **Use indirect references** - Map user-specific tokens to actual database IDs on the server side.
+
+3. **Use UUIDs** - Replace sequential integer IDs with random UUIDs to make guessing harder (though this is security through obscurity and not a complete fix).
+
+4. **Audit logging** - Log all access attempts to sensitive resources for monitoring and detection.
+

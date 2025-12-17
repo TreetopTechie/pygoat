@@ -120,4 +120,8 @@ urlpatterns = [
     path("mitre/25/lab", mitre.mitre_lab_25, name="mitre_lab_25"),
     path("mitre/17/lab", mitre.mitre_lab_17, name="mitre_lab_17"),
     path("mitre/17/lab/api",mitre.mitre_lab_17_api,name="mitre_lab_17_api"),
+    # IDOR Lab
+    path("idor", views.idor_description, name="idor"),
+    path("idor_lab", views.idor_lab, name="idor_lab"),
+    path("idor_lab_login", views.idor_lab_login, name="idor_lab_login"),
 ]

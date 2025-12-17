@@ -1,0 +1,201 @@
+{% extends "introduction/base.html" %}
+{% load static %}
+{% block content %}
+{% block title %}
+<title>IDOR Lab - Employee Directory</title>
+{% endblock %}
+
+<style>
+    .profile-card {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 500px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border: 1px solid #0f3460;
+    }
+    .profile-header {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #0f3460;
+    }
+    .profile-header h3 {
+        color: #e94560;
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+    }
+    .profile-header .role-badge {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .role-employee { background: #3498db; color: white; }
+    .role-manager { background: #9b59b6; color: white; }
+    .role-ceo { background: #e94560; color: white; }
+    .profile-field {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #0f3460;
+    }
+    .profile-field:last-child {
+        border-bottom: none;
+    }
+    .field-label {
+        color: #8892b0;
+        font-weight: 500;
+    }
+    .field-value {
+        color: #ccd6f6;
+        font-family: monospace;
+    }
+    .sensitive {
+        color: #e94560 !important;
+        font-weight: bold;
+    }
+    .login-form {
+        max-width: 400px;
+        margin: 30px auto;
+        padding: 30px;
+        background: #1a1a2e;
+        border-radius: 10px;
+        border: 1px solid #0f3460;
+    }
+    .login-form input {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: 1px solid #0f3460;
+        border-radius: 5px;
+        background: #16213e;
+        color: #ccd6f6;
+    }
+    .login-form input:focus {
+        outline: none;
+        border-color: #e94560;
+    }
+    .error-msg {
+        color: #e94560;
+        text-align: center;
+        margin: 10px 0;
+    }
+    .hint-box {
+        background: #16213e;
+        border-left: 4px solid #f39c12;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 0 5px 5px 0;
+    }
+    .hint-box code {
+        background: #0f3460;
+        padding: 2px 6px;
+        border-radius: 3px;
+        color: #e94560;
+    }
+    .url-display {
+        background: #0f3460;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-family: monospace;
+        color: #64ffda;
+        margin: 15px 0;
+        word-break: break-all;
+    }
+</style>
+
+<div class="container">
+    <h2 style="text-align: center; color: #e94560;">
+        🏢 Employee Directory System
+    </h2>
+    
+    {% if show_login %}
+    <!-- Login Form -->
+    <div class="login-form">
+        <h4 style="text-align: center; color: #ccd6f6;">Employee Login</h4>
+        
+        {% if error %}
+        <p class="error-msg">⚠️ {{ error }}</p>
+        {% endif %}
+        
+        <form method="post" action="/idor_lab_login">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button class="btn btn-info" type="submit" style="width: 100%; margin-top: 15px;">
+                Login
+            </button>
+        </form>
+        
+        <div class="hint-box" style="margin-top: 20px;">
+            <strong>💡 Lab Hint:</strong><br>
+            Login as <code>john</code> with password <code>password2</code>
+        </div>
+    </div>
+    
+    {% else %}
+    <!-- Profile View -->
+    <div class="url-display">
+        📍 Current URL: /idor_lab?user_id={{ profile.id }}
+    </div>
+    
+    <div class="profile-card">
+        <div class="profile-header">
+            <h3>{{ profile.username|title }}</h3>
+            <span class="role-badge role-{{ profile.role }}">{{ profile.role }}</span>
+        </div>
+        
+        <div class="profile-field">
+            <span class="field-label">User ID:</span>
+            <span class="field-value">{{ profile.id }}</span>
+        </div>
+        
+        <div class="profile-field">
+            <span class="field-label">Email:</span>
+            <span class="field-value">{{ profile.email }}</span>
+        </div>
+        
+        <div class="profile-field">
+            <span class="field-label">Role:</span>
+            <span class="field-value">{{ profile.role|title }}</span>
+        </div>
+        
+        <div class="profile-field">
+            <span class="field-label">SSN:</span>
+            <span class="field-value sensitive">{{ profile.ssn }}</span>
+        </div>
+        
+        <div class="profile-field">
+            <span class="field-label">Annual Salary:</span>
+            <span class="field-value sensitive">${{ profile.salary|floatformat:0 }}</span>
+        </div>
+    </div>
+    
+    <div class="hint-box">
+        <strong>🎯 Challenge:</strong><br>
+        You are logged in as <code>{{ profile.username }}</code>. 
+        Can you access other employees' profiles? Try changing the <code>user_id</code> parameter in the URL.
+        <br><br>
+        <strong>Goal:</strong> Find the CEO's SSN and salary!
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/idor_lab" class="btn btn-secondary">Logout</a>
+    </div>
+    {% endif %}
+</div>
+
+<br>
+<div align="right">
+    <button class="btn btn-info" type="button" onclick="window.location.href='/idor'">
+        Back to Lab Details
+    </button>
+</div>
+
+{% endblock %}
+
+

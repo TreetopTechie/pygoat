@@ -1,0 +1,87 @@
+{% extends "introduction/base.html" %}
+{% load static %}
+{% block content %}
+{% block title %}
+<title>IDOR - Insecure Direct Object Reference</title>
+{% endblock %}
+
+<div class="container">
+    <h2 style="font-size: 2.7rem">
+        <span>Insecure Direct Object Reference (IDOR)</span>
+    </h2>
+</div>
+
+<div class="box">
+    <p>
+        <strong>Insecure Direct Object Reference (IDOR)</strong> is a type of access control vulnerability that occurs when 
+        an application uses user-supplied input to access objects directly without proper authorization checks.
+    </p>
+    
+    <p>
+        This vulnerability allows attackers to bypass authorization and access resources directly by modifying the value 
+        of a parameter used to reference an object (such as a user ID, document ID, or filename).
+    </p>
+
+    <h4>Example Vulnerable URL Pattern:</h4>
+    <pre><code>https://example.com/profile?user_id=123</code></pre>
+    <p>
+        An attacker could change <code>user_id=123</code> to <code>user_id=124</code> to view another user's profile 
+        without proper authorization.
+    </p>
+
+    <h4>Impact:</h4>
+    <ul>
+        <li>Unauthorized access to sensitive data (PII, financial records)</li>
+        <li>Horizontal privilege escalation (accessing other users' data)</li>
+        <li>Vertical privilege escalation (accessing admin resources)</li>
+        <li>Data theft and privacy violations</li>
+    </ul>
+
+    <h4>Prevention:</h4>
+    <ul>
+        <li>Implement proper access control checks for every request</li>
+        <li>Use indirect references (mapping user-specific IDs to actual object IDs)</li>
+        <li>Validate that the authenticated user has permission to access the requested resource</li>
+        <li>Use UUIDs instead of sequential integers for object identifiers</li>
+    </ul>
+
+    <br>
+    <button class="coll btn btn-info">Lab Details</button>
+    <div class="lab">
+        <br>
+        <p>
+            This lab simulates an employee directory system. You will be given credentials for a regular employee 
+            named <strong>John</strong>.
+        </p>
+        <p>
+            <strong>Your Goal:</strong> Access the CEO's profile to find sensitive information including their 
+            Social Security Number (SSN) and salary.
+        </p>
+        <p>
+            <strong>Hint:</strong> Pay attention to the URL parameters when viewing your profile. What happens if 
+            you change the <code>user_id</code> parameter?
+        </p>
+        <br>
+        <p><strong>Login Credentials:</strong></p>
+        <ul>
+            <li>Username: <code>john</code></li>
+            <li>Password: <code>password2</code></li>
+        </ul>
+        <div align="right">
+            <button class="btn btn-info" type="button" onclick="window.location.href='/idor_lab'">
+                Access Lab
+            </button>
+        </div>
+    </div>
+</div>
+
+<br>
+<div align="right">
+    <button class="btn btn-info" type="button" onclick="window.location.href='/'">
+        Back to Home
+    </button>
+</div>
+
+{% endblock %}
+
+

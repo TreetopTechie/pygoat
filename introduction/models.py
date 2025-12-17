@@ -95,3 +95,16 @@ class CSRF_user_tbl(models.Model):
     
     def __str__(self):
         return self.username
+
+
+class IDOR_User(models.Model):
+    """Model for IDOR (Insecure Direct Object Reference) lab demonstration"""
+    id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=200, unique=True)
+    email = models.CharField(max_length=200)
+    ssn = models.CharField(max_length=11)  # Sensitive: Social Security Number
+    salary = models.IntegerField(default=0)  # Sensitive: Annual salary
+    role = models.CharField(max_length=50, default='employee')
+    
+    def __str__(self):
+        return f"{self.username} ({self.role})"

@@ -36,7 +36,7 @@ from requests.structures import CaseInsensitiveDict
 
 from .forms import NewUserForm
 from .models import (FAANG, AF_admin, AF_session_id, Blogs, CF_user, authLogin,
-                     comments, info, login, otp, sql_lab_table, tickits)
+                     comments, info, login, otp, sql_lab_table, tickits, IDOR_User)
 from .utility import customHash, filter_blog
 
 #*****************************************Lab Requirements****************************************************#
@@ -1229,3 +1229,66 @@ def software_and_data_integrity_failure_lab3(request):
 def A6_discussion(request):
     
     return render(request,"playground/A6/index.html")
+
+
+## --------------------------IDOR Lab (Insecure Direct Object Reference)-------------------------
+
+@authentication_decorator
+def idor_description(request):
+    """Description page for IDOR vulnerability"""
+    return render(request, "Lab/IDOR/idor.html")
+
+
+@authentication_decorator  
+def idor_lab(request):
+    """
+    VULNERABLE: IDOR Lab - User can access any profile by changing the user_id parameter
+    The vulnerability is that we don't check if the logged-in user has permission 
+    to view the requested profile.
+    """
+    user_id = request.GET.get('user_id')
+    
+    if not user_id:
+        # Show login page to select a user
+        return render(request, "Lab/IDOR/idor_lab.html", {"show_login": True})
+    
+    try:
+        # VULNERABLE: No authorization check - any user can view any profile by ID
+        profile = IDOR_User.objects.get(id=user_id)
+        return render(request, "Lab/IDOR/idor_lab.html", {
+            "profile": profile,
+            "show_login": False
+        })
+    except IDOR_User.DoesNotExist:
+        return render(request, "Lab/IDOR/idor_lab.html", {
+            "error": "User not found",
+            "show_login": True
+        })
+
+
+@authentication_decorator
+def idor_lab_login(request):
+    """Handle login for IDOR lab - validates credentials and redirects to profile"""
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        # Simple credential check (passwords stored in plain text for demo)
+        try:
+            user = IDOR_User.objects.get(username=username)
+            # For demo purposes, password is just "password" + user_id
+            expected_password = f"password{user.id}"
+            if password == expected_password:
+                return redirect(f'/idor_lab?user_id={user.id}')
+            else:
+                return render(request, "Lab/IDOR/idor_lab.html", {
+                    "show_login": True,
+                    "error": "Invalid credentials"
+                })
+        except IDOR_User.DoesNotExist:
+            return render(request, "Lab/IDOR/idor_lab.html", {
+                "show_login": True, 
+                "error": "User not found"
+            })
+    
+    return redirect('/idor_lab')
